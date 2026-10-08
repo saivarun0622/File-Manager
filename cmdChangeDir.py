@@ -17,7 +17,6 @@ class changeDir:
         return self.cwd
 
     def enter_dir_file(self):
-        print(self.cwd)
         os.chdir(self.cwd)
         self.nwd = ""
         print(f"\r{self.path_modifier()}\x1b[K",end="",sep="",flush=True)

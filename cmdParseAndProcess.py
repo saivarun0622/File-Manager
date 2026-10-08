@@ -20,32 +20,38 @@ class parseAndProcess(readInput):
                 
             case 2:
                 if parsed_path[0] == "cd":
-                    return self.cwd.replace(">", "\\") + parsed_path[1] if self.cwd != "C:\\>" else self.cwd.replace(">", "") + parsed_path[1]
+                    return ((self.cwd.replace(">", "\\") + parsed_path[1]),parsed_path[1]) if self.cwd != "C:\\>" else (self.cwd.replace(">", "") + parsed_path[1],parsed_path[1])
 
     def dirname_corrector(self):
-        self.nwd = self.cwd[self.cwd.rfind("\\"):]
-        self.cwd = self.cwd.replace(">", "\\") if self.cwd != "C:\\>" else self.cwd.replace(">", "")
-        self.cwd = self.cwd.replace(self.nwd,"")
-        print("Dir/File Doesn't Exitst...")
+        self.cwd = self.cwd[:self.cwd.rfind("\\")+1]
+        print("mentioned dir/file doesn't exitst. Searching for close matches...")
+        time.sleep(5)
         dir_files = [dir_file.casefold() for dir_file in self.listdir_file()]
-        print("Closest matched Directories and Files in Current Directory: ")
-        dir_files = difflib.get_close_matches(self.nwd, dir_files, n=len(dir_files), cutoff=0.5)
+        dir_files = difflib.get_close_matches(self.nwd, dir_files, n=len(dir_files), cutoff=0.27)
+        if not dir_files:
+            print("no matching directories or files found, returning to parent dir...")
+            print()
+            return self.cwd if self.cwd == "C:\\" else self.cwd.rstrip("\\")
+        print("closest matched directories and files in current directory: ")
         for i in range(len(dir_files)):
-            if(i%5!=0):
+            if((i+1)%5!=0):
                 print(dir_files[i],end="    ")
             else:
                 print(dir_files[i])
         else:
             print()
-            print("Select the directory/file you want to access..")
+            print("Select the directory/file you want to access..[Press 'esc' to return back to the parent dir]")
             x=0
             while True:
-                print(f"\r{dir_files[x]}\x1b[K",end="",flush=True)
+                print(f"\r{self.cwd}{dir_files[x]}\x1b[K",end="",flush=True)
                 event = keyboard.read_event()
                 time.sleep(0.03)
                 if event.event_type == keyboard.KEY_DOWN:
                     if event.name == "enter":
-                        return dir_files[x]
+                        return self.cwd + dir_files[x]
+                    elif event.name == "esc":
+                        print("returning to parent dir")
+                        return self.cwd if self.cwd == "C:\\" else self.cwd.rstrip("\\")
                     elif event.name == "left":
                         x = x-1
                         if x == -1:
@@ -60,10 +66,15 @@ class parseAndProcess(readInput):
             self.enter_dir_file()
         else:
             try:
-                self.cwd = self.parse_input()
+                self.cwd,self.nwd = self.parse_input()
+                print(self.nwd)
+                print(self.cwd)
+                self.enter_dir_file()
 
             except FileNotFoundError:
-
-                self.dirname_corrector()
-
-            self.enter_dir_file()
+                self.cwd = self.dirname_corrector()
+                self.enter_dir_file()
+                
+            else:
+                # self.enter_dir_file()
+                pass
