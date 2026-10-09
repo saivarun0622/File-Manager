@@ -15,11 +15,11 @@ class changeDir:
             self.cwd = self.cwd + ">"
             return self.cwd
         return self.cwd
+    
+    def listdir_file(self):
+        return os.listdir(self.cwd)
 
     def enter_dir_file(self):
         os.chdir(self.cwd)
         self.nwd = ""
         print(f"\r{self.path_modifier()}\x1b[K",end="",sep="",flush=True)
-
-    def listdir_file(self):
-        return os.listdir(self.cwd)

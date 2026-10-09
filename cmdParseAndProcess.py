@@ -10,17 +10,44 @@ class parseAndProcess(readInput):
         pass
 
     def parse_input(self):
-        commands = ["cd","ed"]
+        commands = ["cd", "ed", "ldf", "of", "--help",]
         parsed_path = self.nwd.split(" ",1)
         print()
         match(len(parsed_path)):
             case 1:
-                if parsed_path[0] == "cd":
-                    return self.cwd.rstrip(">")
+                match(parsed_path[0]):
+                    case "cd":
+                        return self.cwd.rstrip(">"), ""
+                    case "ed":
+                        return (self.cwd[:self.cwd.rfind("\\")], "") if self.cwd != "C:\\>" else (self.cwd.rstrip(">"), "")
+                    case "ldf":
+                        return self.cwd.rstrip(">"), parsed_path[0]
+                    case "--help":
+                        for i in commands:
+                            match(i):
+                                case "cd":
+                                    print("'cd <dir_name>' - Used to change to the child directory of the current directory\n")
+                                case "ed":
+                                    print("'ed' - Used to change to the parent/previous directory of the current directory\n")
+                                case "ldf":
+                                    print("'ldf' - Used to list the directories and files present in current directory\n")
+                                case "of":
+                                    print("'of <file_name>' - Used to open the mentioned file\n")
+                                case "--help":
+                                    print("'--help' - Used to help with commands\n")
+                        else:
+                            return self.cwd.rstrip(">"), ""
+                    case _:
+                        print("please provide proper input... [type '--help' for details on differnt commands]")
+                        return self.cwd.rstrip(">"), ""
+
                 
             case 2:
-                if parsed_path[0] == "cd":
-                    return ((self.cwd.replace(">", "\\") + parsed_path[1]),parsed_path[1]) if self.cwd != "C:\\>" else (self.cwd.replace(">", "") + parsed_path[1],parsed_path[1])
+                match parsed_path[0]:
+                    case "cd":
+                        return ((self.cwd.replace(">", "\\") + parsed_path[1]),parsed_path[1]) if self.cwd != "C:\\>" else (self.cwd.replace(">", "") + parsed_path[1],parsed_path[1])
+                    case "ed":
+                        return ((self.cwd.replace(">", "\\") + parsed_path[1]),parsed_path[1]) if self.cwd != "C:\\>" else (self.cwd.replace(">", "") + parsed_path[1],parsed_path[1])
 
     def dirname_corrector(self):
         self.cwd = self.cwd[:self.cwd.rfind("\\")+1]
@@ -50,6 +77,7 @@ class parseAndProcess(readInput):
                     if event.name == "enter":
                         return self.cwd + dir_files[x]
                     elif event.name == "esc":
+                        
                         print("returning to parent dir")
                         return self.cwd if self.cwd == "C:\\" else self.cwd.rstrip("\\")
                     elif event.name == "left":
@@ -67,14 +95,17 @@ class parseAndProcess(readInput):
         else:
             try:
                 self.cwd,self.nwd = self.parse_input()
-                print(self.nwd)
-                print(self.cwd)
+                if self.nwd == "ldf":
+                    dir_files = self.listdir_file()
+                    for i in range(0,len(dir_files),5):
+                        row = dir_files[i:i+5]
+                        spacing = len(max(dir_files,key=len))
+                        for item in row:
+                            print(item + (" "*(spacing-len(item))),end="")
+                        print()
+                
                 self.enter_dir_file()
 
             except FileNotFoundError:
                 self.cwd = self.dirname_corrector()
                 self.enter_dir_file()
-                
-            else:
-                # self.enter_dir_file()
-                pass
