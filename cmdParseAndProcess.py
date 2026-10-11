@@ -173,13 +173,13 @@ class parseAndProcess(readInput):
         self.cwd = self.cwd[:self.cwd.rfind("\\")+1]
         for _ in range(3):
             print("\rmentioned dir/file doesn't exitst. Searching for close matches   ",end="",flush=True)
-            time.sleep(0.275)
+            time.sleep(0.175)
             print("\rmentioned dir/file doesn't exitst. Searching for close matches.  ",end="",flush=True)
-            time.sleep(0.275)
+            time.sleep(0.175)
             print("\rmentioned dir/file doesn't exitst. Searching for close matches.. ",end="",flush=True)
-            time.sleep(0.275)
+            time.sleep(0.175)
             print("\rmentioned dir/file doesn't exitst. Searching for close matches...",end="",flush=True)
-            time.sleep(1.275)
+            time.sleep(1.175)
         print()
         dir_files = [dir_file.casefold() for dir_file in self.listdir_file()]
         dir_files = difflib.get_close_matches(self.nwd, dir_files, n=len(dir_files), cutoff=0.27)
@@ -224,21 +224,46 @@ class parseAndProcess(readInput):
         else:
             try:
                 self.cwd,self.nwd = self.parse_input()
-                if self.nwd == "ldf":
-                    if self.user == "sudo":
-                        dir_files = self.listdir_file()
-                    elif self.user == "user":
-                        print("trying to access directories/files... please provide password")
-                        if(self.check_passwd()):
+                match (self.nwd):
+                    case"ldf":
+                        if self.user == "sudo":
                             dir_files = self.listdir_file()
-                            spacing = len(max(dir_files,key=len))
-                            for i in range(0,len(dir_files),5):
-                                row = dir_files[i:i+5]
-                                for item in row:
-                                    print(item + (" "*(spacing-len(item))),end="")
-                                print()
+                        elif self.user == "user":
+                            print("trying to access directories/files... please provide password")
+                            if(self.check_passwd()):
+                                dir_files = self.listdir_file()
+                                spacing = len(max(dir_files,key=len))
+                                for i in range(0,len(dir_files),5):
+                                    row = dir_files[i:i+5]
+                                    for item in row:
+                                        print(item + (" "*(spacing-len(item))),end="")
+                                    print()
+                    case "odw":
+                        if self.user == "sudo":
+                            pass
+                        elif self.user == "user":
+                            print("trying to open directory... please provide password")
+                            if(self.check_passwd()):
+                                pass
+                            else:
+                                print("'odw' cmd terminated")
+                                self.nwd == ""
+                    case _:
+                        file_extensions = [".txt", ".html", ".css", ".js", ".c", ".cpp", ".py", ".java"]
+                        if self.nwd[self.nwd.rfind("."):] in file_extensions:
+                            if self.user == "sudo":
+                                pass
+                            elif self.user == "user":
+                                print("trying to open file... please provide password")
+                                if(self.check_passwd()):
+                                    pass
+                                else:
+                                    print("file opening operation denied")
+                                    self.cwd = self.cwd[:self.cwd.rfind("\\")]
+                                    self.nwd = ""
                         else:
-                            print("'ldf' cmd terminated")
+                            self.cwd = self.cwd
+
                 self.enter_dir_file()
 
             except FileNotFoundError:
