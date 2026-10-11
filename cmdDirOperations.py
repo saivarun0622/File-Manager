@@ -19,7 +19,8 @@ class changeDir:
     def enter_dir(self):
         opening_options = {"VS Code":"C:/Users/saiva/AppData/Local/Programs/Microsoft VS Code/Code.exe",
                             "Net Beans":"C:/Program Files/netbeans-31-bin/netbeans/bin/netbeans64.exe",
-                            "Git Bash":"C:/ProgramData/Microsoft/Windows/Start Menu/Programs/Git/Git Bash"}
+                            "Git Bash":"C:/ProgramData/Microsoft/Windows/Start Menu/Programs/Git/Git Bash",
+                            "StarUML":"C:/Program Files/StarUML/StarUML.exe"}
         try:
             if self.nwd == "odw":
                 x = 0

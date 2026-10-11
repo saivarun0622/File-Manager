@@ -2,7 +2,7 @@
 import os, keyboard, time
 
 #import required user-defined modules
-from cmdChangeDir import *
+from cmdDirOperations import *
 
 class readInput(changeDir):
     def __init__(self):

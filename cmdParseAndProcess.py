@@ -1,5 +1,5 @@
 #import required built-in modules
-import os, keyboard, time, difflib
+import os, keyboard, time, difflib, sys
 
 #import required user-defined modules
 from cmdReadInput import *
@@ -7,8 +7,124 @@ from cmdReadInput import *
 class parseAndProcess(readInput):
     def __init__(self):
         super().__init__()
+        self.user = ""
+        self.__psswd = "1857"
         pass
 
+    def check_passwd(self):
+        psswd = ""
+        attempt =1
+        total_attempts = 5 
+        status_msg = ""
+        if self.user == "sudo":
+            while True:
+                sys.stdout.write(f"\rEnter Password:{'*'*len(psswd)}\x1b[K\n")
+                sys.stdout.write(f"\r{status_msg}\x1b[K\n")
+                sys.stdout.write(f"\rPress esc to go back to user selection")
+                sys.stdout.write("\x1b[2A\r")
+                sys.stdout.flush()
+                event = keyboard.read_event()
+                if event.event_type == keyboard.KEY_DOWN:
+                    if event.name == "esc":
+                        sys.stdout.write("\n\n\r\x1b[K\x1b[A\r\x1b[K\x1b[A\r\x1b[K")
+                        sys.stdout.flush()
+                        return False
+                    elif event.name == "enter":
+                        sys.stdout.flush()
+                        if psswd == self.__psswd:
+                            sys.stdout.write("\n\n\r\x1b[K\x1b[A\r\x1b[K\x1b[A\r\x1b[KPermission Granted\n")
+                            sys.stdout.flush()
+                            return True
+                        else:
+                            if attempt >= total_attempts:
+                                sys.stdout.write("\n\n\r\x1b[K\x1b[A\r\x1b[K\x1b[A\r\x1b[K")
+                                print("Max attempts reached... Access Denied for 'sudo' user. Switching to 'user'.")
+                                self.user = "user"
+                                time.sleep(.075)
+                                return False
+                            if attempt >= 2:
+                                status_msg = f"Incorrect password... You have {total_attempts - attempt} attempts left."
+                            else:
+                                status_msg = "Incorrect password..."
+
+                            attempt += 1
+                            psswd = ""
+                            continue
+                    elif event.name == "backspace":
+                        psswd = psswd[:-1]
+                    elif len(event.name)==1:
+                        psswd += event.name
+
+
+        elif self.user == "user":
+            while True:
+                sys.stdout.write(f"\rEnter Password:{'*'*len(psswd)}\x1b[K\n")
+                sys.stdout.write(f"\r{status_msg}\x1b[K\n")
+                sys.stdout.write(f"\rPress esc to go back")
+                sys.stdout.write("\x1b[2A\r")
+                sys.stdout.flush()
+                event = keyboard.read_event()
+                if event.event_type == keyboard.KEY_DOWN:
+                    if event.name == "esc":
+                        sys.stdout.write("\n\n\r\x1b[K\x1b[A\r\x1b[K\x1b[A\r\x1b[K")
+                        sys.stdout.flush()
+                        return False
+                    elif event.name == "enter":
+                        sys.stdout.flush()
+                        if psswd == self.__psswd:
+                            sys.stdout.write("\n\n\r\x1b[K\x1b[A\r\x1b[K\x1b[A\r\x1b[KPermission Granted\n")
+                            sys.stdout.flush()
+                            return True
+                        else:
+                            if attempt >= total_attempts:
+                                sys.stdout.write("\n\n\r\x1b[K\x1b[A\r\x1b[K\x1b[A\r\x1b[K")
+                                print("Max attempts reached... Access Denied.")
+                                self.user = "user"
+                                time.sleep(0.075)
+                                return False
+                            if attempt >= 2:
+                                status_msg = f"Incorrect password... You have {total_attempts - attempt} attempts left."
+                            else:
+                                status_msg = "Incorrect password..."
+
+                            attempt += 1
+                            psswd = ""
+                            continue
+                    elif event.name == "backspace":
+                        psswd = psswd[:-1]
+                    elif len(event.name)==1:
+                        psswd += event.name
+
+    def parse_user(self):
+        users = ["sudo","user"]
+        x=0
+        while True:
+            print(f"\rSelect User: {users[x]}\x1b[K",end="",flush=True)
+            event = keyboard.read_event()
+            time.sleep(0.03)
+            if event.event_type == keyboard.KEY_DOWN:
+                if event.name == "enter":
+                    if users[x] == "sudo":
+                        self.user = "sudo"
+                        if(self.check_passwd()):
+                            break
+                        else:
+                            if self.user == "user":
+                                break
+                            self.user = ""
+                            continue
+                    elif users[x] == "user":
+                        self.user = "user"
+                        break
+                if event.name == "right":
+                    x = (x+1) % len(users)
+                elif event.name == "left":
+                    x -= 1
+                    if x < 0:
+                        x = len(users)-1
+
+        self.read_dir_file_name()
+            
     def parse_input(self):
         commands = ["cd", "ed", "ldf", "odw", "--help",]
         parsed_path = self.nwd.split(" ",1)
@@ -109,13 +225,20 @@ class parseAndProcess(readInput):
             try:
                 self.cwd,self.nwd = self.parse_input()
                 if self.nwd == "ldf":
-                    dir_files = self.listdir_file()
-                    spacing = len(max(dir_files,key=len))
-                    for i in range(0,len(dir_files),5):
-                        row = dir_files[i:i+5]
-                        for item in row:
-                            print(item + (" "*(spacing-len(item))),end="")
-                        print()
+                    if self.user == "sudo":
+                        dir_files = self.listdir_file()
+                    elif self.user == "user":
+                        print("trying to access directories/files... please provide password")
+                        if(self.check_passwd()):
+                            dir_files = self.listdir_file()
+                            spacing = len(max(dir_files,key=len))
+                            for i in range(0,len(dir_files),5):
+                                row = dir_files[i:i+5]
+                                for item in row:
+                                    print(item + (" "*(spacing-len(item))),end="")
+                                print()
+                        else:
+                            print("'ldf' cmd terminated")
                 self.enter_dir_file()
 
             except FileNotFoundError:
