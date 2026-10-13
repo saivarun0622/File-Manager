@@ -43,7 +43,7 @@ class parseAndProcess(readInput):
                                 time.sleep(.075)
                                 return False
                             if attempt >= 2:
-                                status_msg = f"Incorrect password... You have {total_attempts - attempt} attempts left."
+                                status_msg = f"{total_attempts - attempt} attempts left."
                             else:
                                 status_msg = "Incorrect password..."
 
@@ -96,6 +96,7 @@ class parseAndProcess(readInput):
                         psswd += event.name
 
     def parse_user(self):
+        self.clear_screen()
         users = ["sudo","user"]
         x=0
         while True:
@@ -126,7 +127,7 @@ class parseAndProcess(readInput):
         self.read_dir_file_name()
             
     def parse_input(self):
-        commands = ["cd", "ed", "ldf", "odw", "--help",]
+        commands = ["cd", "ed", "ldf", "odw", "rm", "cls", "--help"]
         parsed_path = self.nwd.split(" ",1)
         print()
         match(len(parsed_path)):
@@ -140,6 +141,15 @@ class parseAndProcess(readInput):
                         return self.cwd.rstrip(">"), parsed_path[0]
                     case "odw":
                         return (self.cwd.replace(">", ""),parsed_path[0])
+                    case "rm":
+                        os.chdir(self.cwd[:self.cwd.rfind("\\")])
+                        self.cwd = self.cwd[:self.cwd.rfind("\\")]+self.cwd[self.cwd.rfind("\\"):]
+                        self.nwd = ["rm",self.cwd[self.cwd.rfind("\\"):].rstrip(">")]
+                        return self.cwd[:self.cwd.rfind("\\")]+self.nwd[1],self.nwd
+                    case "cls":
+                        self.clear_screen()
+                        # time.sleep(5000)
+                        return self.cwd.rstrip(">"), ""
                     case "--help":
                         for i in commands:
                             match(i):
@@ -151,6 +161,11 @@ class parseAndProcess(readInput):
                                     print("'ldf' - Used to list the directories and files present in current directory\n")
                                 case "odw":
                                     print("'odw <option>' - Used to open current directory with selected option\n")
+                                case "rm":
+                                    print("i. 'rm' - Used to remove folder from the system")
+                                    print("ii. 'rm <file_name>' - Used to remove the file from the directory\n")
+                                case "cls":
+                                    print("'cls' - Used to clear the terminal screen\n")
                                 case "--help":
                                     print("'--help' - Used to help with commands\n")
                         else:
@@ -166,10 +181,29 @@ class parseAndProcess(readInput):
                     case "cd":
                         return (self.cwd.replace(">", "\\") + parsed_path[1],parsed_path[1]) if self.cwd != "C:\\>" else (self.cwd.replace(">", "") + parsed_path[1],parsed_path[1])
                     case "ed":
-                        return (self.cwd.replace(">", "\\") + parsed_path[1],parsed_path[1]) if self.cwd != "C:\\>" else (self.cwd.replace(">", "") + parsed_path[1],parsed_path[1])
+                        print("'ed' cmd doesn't take arguments... [type '--help' for details on differnt commands]")
+                        return self.cwd.rstrip(">"), ""
+                    case "ldf":
+                        print("'ldf' cmd doesn't take arguments... [type '--help' for details on differnt commands]")
+                        return self.cwd.rstrip(">"), ""
+                    case "odw":
+                        return (self.cwd.replace(">", ""),parsed_path)
+                    case "rm":
+                        return (self.cwd.replace(">", "\\") + parsed_path[1],parsed_path) if self.cwd != "C:\\>" else (self.cwd.replace(">", "") + parsed_path[1],parsed_path)
 
 
     def dirname_corrector(self):
+        while msvcrt.kbhit():
+            msvcrt.getch()
+        if self.user == "sudo":
+            pass
+        elif self.user == "user":
+            print("trying to access directories/files... please provide password")
+            if(self.check_passwd()):
+                print()
+            else:
+                print("Access denied to help in dir accessing...")
+                return self.cwd.replace(">", "\\")if self.cwd != "C:\\>" else self.cwd.replace(">", "")
         self.cwd = self.cwd[:self.cwd.rfind("\\")+1]
         for _ in range(3):
             print("\rmentioned dir/file doesn't exitst. Searching for close matches   ",end="",flush=True)
@@ -189,7 +223,7 @@ class parseAndProcess(readInput):
             return self.cwd if self.cwd == "C:\\" else self.cwd.rstrip("\\")
         spacing = len(max(dir_files,key=len))
         print("closest matched directories and files in current directory: ")
-        for i in range(len(dir_files)):
+        for i in range(0,len(dir_files),5):
             row = dir_files[i:i+5]
             for item in row:
                 print(item + (" "*(spacing-len(item))),end="")
@@ -215,7 +249,7 @@ class parseAndProcess(readInput):
                             x = len(dir_files)-1
                     elif event.name == "right":
                         x = ((x+1) % len(dir_files))
-
+            
 
     def process_input(self):
         if self.nwd == "":
@@ -224,46 +258,98 @@ class parseAndProcess(readInput):
         else:
             try:
                 self.cwd,self.nwd = self.parse_input()
-                match (self.nwd):
-                    case"ldf":
-                        if self.user == "sudo":
-                            dir_files = self.listdir_file()
-                        elif self.user == "user":
-                            print("trying to access directories/files... please provide password")
-                            if(self.check_passwd()):
+                if type(self.nwd) != list:
+                    match (self.nwd):
+                        case"ldf":
+                            while msvcrt.kbhit():
+                                msvcrt.getch()
+                            if self.user == "sudo":
                                 dir_files = self.listdir_file()
-                                spacing = len(max(dir_files,key=len))
-                                for i in range(0,len(dir_files),5):
-                                    row = dir_files[i:i+5]
-                                    for item in row:
-                                        print(item + (" "*(spacing-len(item))),end="")
-                                    print()
-                    case "odw":
+                            elif self.user == "user":
+                                print("trying to access directories/files... please provide password")
+                                if(self.check_passwd()):
+                                    dir_files = self.listdir_file()
+                                    if not dir_files:
+                                        print("current directory is empty, returning...")
+                                        print()
+                                        return
+                            spacing = len(max(dir_files,key=len))
+                            for i in range(0,len(dir_files),5):
+                                row = dir_files[i:i+5]
+                                for item in row:
+                                    print(item + (" "*(spacing-len(item))),end="")
+                                print()
+                        case "odw":
+                            if self.user == "sudo":
+                                pass
+                            elif self.user == "user":
+                                print("trying to open directory... please provide password")
+                                if(self.check_passwd()):
+                                    pass
+                                else:
+                                    print("'odw' cmd terminated")
+                                    self.nwd = ""
+                        case "rm":
+                            if self.user == "sudo":
+                                self.del_dir()
+                            elif self.user == "user":
+                                print("trying to remove directory... please provide password")
+                                if(self.check_passwd()):
+                                    self.del_dir()
+                                else:
+                                    print("'rm' cmd terminated")
+                                    self.cwd = self.cwd.replace(self.nwd,"")
+                                    self.nwd = ""
+
+                        case _:
+                            file_extensions = [".txt", ".html", ".css", ".js", ".c", ".cpp", ".py", ".java"]
+                            if self.nwd[self.nwd.rfind("."):] in file_extensions:
+                                if self.user == "sudo":
+                                    pass
+                                elif self.user == "user":
+                                    print("trying to open file... please provide password")
+                                    if(self.check_passwd()):
+                                        pass
+                                    else:
+                                        print("file opening operation denied")
+                                        self.cwd = self.cwd[:self.cwd.rfind("\\")]
+                                        self.nwd = ""
+
+                elif type(self.nwd) == list:
+                    if self.nwd[0] == "odw":
                         if self.user == "sudo":
                             pass
                         elif self.user == "user":
-                            print("trying to open directory... please provide password")
+                            print(f"trying to open directory with {self.nwd[1]}... please provide password")
                             if(self.check_passwd()):
                                 pass
                             else:
                                 print("'odw' cmd terminated")
-                                self.nwd == ""
-                    case _:
-                        file_extensions = [".txt", ".html", ".css", ".js", ".c", ".cpp", ".py", ".java"]
-                        if self.nwd[self.nwd.rfind("."):] in file_extensions:
+                                self.nwd = ""
+
+                    elif self.nwd[0] == "rm":
+                        if "." in self.nwd[1]:
                             if self.user == "sudo":
-                                pass
+                                self.del_file()
                             elif self.user == "user":
-                                print("trying to open file... please provide password")
+                                print(f"trying to remove file {self.nwd[1]}... please provide password")
                                 if(self.check_passwd()):
-                                    pass
+                                    self.del_file()
                                 else:
-                                    print("file opening operation denied")
-                                    self.cwd = self.cwd[:self.cwd.rfind("\\")]
+                                    print("'rm' cmd terminated")
+                                    self.cwd = self.cwd.replace(self.nwd[1],"")
                                     self.nwd = ""
                         else:
-                            self.cwd = self.cwd
-
+                            if self.user == "sudo":
+                                self.del_dir()
+                            elif self.user == "user":
+                                print(f"trying to remove dir {self.nwd[1]}... please provide password")
+                                if(self.check_passwd()):
+                                    self.del_dir()
+                                else:
+                                    print("'rm' cmd terminated")
+                                    self.cwd = self.cwd.replace(self.nwd[1],"")
+                                    self.nwd = ""
                 self.enter_dir_file()
 
             except FileNotFoundError:
