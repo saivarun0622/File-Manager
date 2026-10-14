@@ -302,18 +302,19 @@ class parseAndProcess(readInput):
                                     self.nwd = ""
 
                         case _:
-                            file_extensions = [".txt", ".html", ".css", ".js", ".c", ".cpp", ".py", ".java"]
-                            if self.nwd[self.nwd.rfind("."):] in file_extensions:
-                                if self.user == "sudo":
-                                    pass
-                                elif self.user == "user":
-                                    print("trying to open file... please provide password")
-                                    if(self.check_passwd()):
+                            if "." in self.nwd:
+                                    if self.user == "sudo":
                                         pass
-                                    else:
-                                        print("file opening operation denied")
-                                        self.cwd = self.cwd[:self.cwd.rfind("\\")]
-                                        self.nwd = ""
+                                    elif self.user == "user":
+                                        print("trying to open file... please provide password")
+                                        if(self.check_passwd()):
+                                            pass
+                                        else:
+                                            print("file opening operation denied")
+                                            self.cwd = self.cwd[:self.cwd.rfind("\\")]
+                                            self.nwd = ""
+                            else:
+                                pass
 
                 elif type(self.nwd) == list:
                     if self.nwd[0] == "odw":

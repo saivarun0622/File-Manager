@@ -100,7 +100,7 @@ class changeDir:
                            "VS Code":"C:/Users/saiva/AppData/Local/Programs/Microsoft VS Code/Code.exe",
                            "Net Beans":"C:/Program Files/netbeans-31-bin/netbeans/bin/netbeans64.exe"}
 
-        if (self.cwd.endswith(".html") or self.cwd.endswith(".java") or self.cwd.endswith(".txt")):
+        if (self.cwd.endswith(".html") or self.cwd.endswith(".java") or self.cwd.endswith(".txt") or self.cwd.endswith(".c") or self.cwd.endswith(".cpp") or self.cwd.endswith(".js") or self.cwd.endswith(".py")):
             x = 0
             while True:
                 print(f"\rOpen with - {list(opening_options.keys())[x]}\x1b[K",end="",flush=True)
@@ -121,13 +121,15 @@ class changeDir:
                             x = len(opening_options)-1
                     elif event.name == "right":
                         x = ((x+1)%len(opening_options))
+        else:
+            webbrowser.open(self.cwd)
 
-            self.cwd = self.cwd[:self.cwd.rfind("\\")]
-            self.nwd = ""
-            while msvcrt.kbhit():
-                 msvcrt.getch()
-            self.enter_dir()
-            time.sleep(0.04)
+        self.cwd = self.cwd[:self.cwd.rfind("\\")]
+        self.nwd = ""
+        while msvcrt.kbhit():
+             msvcrt.getch()
+        self.enter_dir()
+        time.sleep(0.04)
 
     def enter_dir_file(self):
         if '.' not in self.nwd:
