@@ -149,7 +149,7 @@ class changeDir:
 
         except FileNotFoundError:
             print("file does not exist to remove...")
-            self.cwd = self.cwd[:self.cwd.rstrip("\\")] if self.cwd != "C:\\" else self.cwd.replace(">","")
+            self.cwd = self.cwd[:self.cwd.rfind("\\")] if self.cwd != "C:\\" else self.cwd.replace(">","")
             while msvcrt.kbhit():
                 msvcrt.getch()
 

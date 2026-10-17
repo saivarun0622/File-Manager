@@ -83,7 +83,7 @@ class parseAndProcess(readInput):
                                 time.sleep(0.075)
                                 return False
                             if attempt >= 2:
-                                status_msg = f"Incorrect password... You have {total_attempts - attempt} attempts left."
+                                status_msg = f"{total_attempts - attempt} attempts left."
                             else:
                                 status_msg = "Incorrect password..."
 
@@ -160,7 +160,8 @@ class parseAndProcess(readInput):
                                 case "ldf":
                                     print("'ldf' - Used to list the directories and files present in current directory\n")
                                 case "odw":
-                                    print("'odw <option>' - Used to open current directory with selected option\n")
+                                    print("'i. odw' - Used to open current directory after option is selected\n")
+                                    print("'ii. odw <option>' - Used to open current directory with selected option\n")
                                 case "rm":
                                     print("i. 'rm' - Used to remove folder from the system")
                                     print("ii. 'rm <file_name>' - Used to remove the file from the directory\n")
